@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   Input,
@@ -126,7 +125,7 @@ export const EventsPage = () => {
         <SimpleGrid columns={(1, 2, 3)} spacingY='20px'>
           {filteredEvents.map((event) => (
             <li key={event.id}>
-              <Link key={event.id} to={`/events/${event.id}`}>
+              <Link key={event.id} to={`/event/${event.id}`}>
                 <Card key={event.id} maxW='300px'>
                   <Image
                     src={event.image}
@@ -155,9 +154,6 @@ export const EventsPage = () => {
           <ModalBody>
             <AddEvent addEvent={addEvent} />
           </ModalBody>
-          <ModalFooter>
-            {/* You can add additional buttons or actions here if needed */}
-          </ModalFooter>
         </ModalContent>
       </Modal>
     </div>

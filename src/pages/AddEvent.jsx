@@ -27,13 +27,13 @@ export const AddEvent = ({ addEvent }) => {
       <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="title"
+          placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <input
           type="text"
-          placeholder="description"
+          placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
@@ -45,7 +45,7 @@ export const AddEvent = ({ addEvent }) => {
         />
         <input
           type="text"
-          placeholder="location"
+          placeholder="Location"
           value={location}
           onChange={(e) => setLoaction(e.target.value)}
         />
