@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Heading,
   SimpleGrid,
@@ -14,23 +14,23 @@ import {
   ModalCloseButton,
   Input,
   Box,
-  Checkbox
-} from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
-import { AddEvent } from './AddEvent';
+  Checkbox,
+} from "@chakra-ui/react";
+import { Link } from "react-router-dom";
+import { AddEvent } from "./AddEvent";
 
 export const EventsPage = () => {
   const [events, setEvents] = useState([]);
   const [showAddEventModal, setShowAddEventModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       const [eventsResponse, categoriesResponse] = await Promise.all([
-        fetch('http://localhost:3000/events'),
-        fetch('http://localhost:3000/categories'),
+        fetch("http://localhost:3000/events"),
+        fetch("http://localhost:3000/categories"),
       ]);
 
       const [eventsData, categoriesData] = await Promise.all([
@@ -46,8 +46,8 @@ export const EventsPage = () => {
   }, []);
 
   const addEvent = async (event) => {
-    const response = await fetch('http://localhost:3000/events', {
-      method: 'POST',
+    const response = await fetch("http://localhost:3000/events", {
+      method: "POST",
       body: JSON.stringify(event),
     });
 
@@ -71,7 +71,7 @@ export const EventsPage = () => {
 
   const getCategoryName = (categoryId) => {
     const category = categories.find((category) => category.id === categoryId);
-    return category ? category.name : 'Unknown Category';
+    return category ? category.name : "Unknown Category";
   };
 
   const handleCategoryToggle = (categoryId) => {
@@ -85,77 +85,132 @@ export const EventsPage = () => {
   };
 
   const filteredEvents = events.filter((event) => {
-    const titleLowerCase = event.title?.toLowerCase() || '';
-    const descriptionLowerCase = event.description?.toLowerCase() || '';
+    const titleLowerCase = event.title?.toLowerCase() || "";
+    const descriptionLowerCase = event.description?.toLowerCase() || "";
 
     const titleMatches = titleLowerCase.includes(searchTerm);
     const descriptionMatches = descriptionLowerCase.includes(searchTerm);
 
     const categoryMatches =
       selectedCategories.length === 0 ||
-      (event.categoryIds && event.categoryIds.some((categoryId) => selectedCategories.includes(categoryId)));
+      (event.categoryIds &&
+        event.categoryIds.some((categoryId) =>
+          selectedCategories.includes(categoryId)
+        ));
 
     return (titleMatches || descriptionMatches) && categoryMatches;
   });
 
   return (
-    <div className='App'>
-      <Heading>List of events</Heading>
+    <div className="App">
+      <Box p="4" bg="green.500" textAlign="center">
+        <Heading as="h1" mb="4" color="white" textAlign="center">
+          List of events
+        </Heading>
 
-      <Input
-        type='text'
-        placeholder='Search events...'
-        value={searchTerm}
-        onChange={handleSearch}
-      />
+        <Input
+          mb="4"
+          bg="white"
+          color="green.900"
+          maxW="400px"
+          type="text"
+          textAlign="center"
+          placeholder="Search events..."
+          focusBorderColor="orange.500"
+          value={searchTerm}
+          onChange={handleSearch}
+        />
 
-      <Box>
-        {categories.map((category) => (
-          <Checkbox
-            key={category.id}
-            isChecked={selectedCategories.includes(category.id)}
-            onChange={() => handleCategoryToggle(category.id)}
-          >
-            {category.name}
-          </Checkbox>
-        ))}
-      </Box>
+        <Box mb="4">
+          {categories.map((category) => (
+            <Checkbox
+              color="white"
+              size="lg"
+              colorScheme="orange"
+              mr="3"
+              key={category.id}
+              isChecked={selectedCategories.includes(category.id)}
+              onChange={() => handleCategoryToggle(category.id)}
+            >
+              {category.name}
+            </Checkbox>
+          ))}
+        </Box>
 
-      <ul>
-        <SimpleGrid columns={(1, 2, 3)} spacingY='20px'>
+        <Button
+          onClick={handleAddEventClick}
+          width="400px"
+          mb="6"
+          bg="white"
+          color="green.600"
+        >
+          Click here to add your event
+        </Button>
+
+        <Modal isOpen={showAddEventModal} onClose={handleCloseModal}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Add Event</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <AddEvent addEvent={addEvent} />
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+
+        <SimpleGrid columns={[1, 2, 4]} spacing={8}>
           {filteredEvents.map((event) => (
-            <li key={event.id}>
-              <Link key={event.id} to={`/event/${event.id}`}>
-                <Card key={event.id} maxW='300px'>
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    borderRadius='lg'
-                  />
-                  <Text>{event.title}</Text>
-                  <Text>{event.description}</Text>
-                  <Text>{event.startTime}</Text>
-                  <Text>{event.endTime}</Text>
-                  <Text>Category: {event.categoryIds ? event.categoryIds.map(getCategoryName).join(', ') : 'None'}</Text>
-                </Card>
-              </Link>
-            </li>
+            <Link key={event.id} to={`/event/${event.id}`}>
+              <Card
+                key={event.id}
+                p="0"
+                borderWidth="0px"
+                boxShadow="lg"
+                borderRadius="lg"
+                cursor="pointer"
+                transition="transform 0.2s ease-in-out"
+                _hover={{
+                  transform: "scale(1.1)",
+                }}
+                bg="white"
+                minW="200px"
+                maxW="300px"
+              >
+                <Image
+                  src={event.image}
+                  alt={event.title}
+                  borderRadius="lg"
+                  mb="4"
+                  h="170px"
+                  w="100%"
+                  objectFit="cover"
+                />
+                <Text
+                  color="green.800"
+                  fontWeight="bold"
+                  fontSize="md"
+                  textTransform="uppercase"
+                >
+                  {event.title}
+                </Text>
+                <Text color="green.700" pb="4">
+                  {event.description}
+                </Text>
+                <Text color="green.600">Start: {event.startTime}</Text>
+                <Text color="green.600" pb="4">
+                  End: {event.endTime}
+                </Text>
+                <Text color="green.500" pb="6">
+                  Category:{" "}
+                  {event.categoryIds
+                    ? event.categoryIds.map(getCategoryName).join(", ")
+                    : "None"}
+                </Text>
+              </Card>
+            </Link>
           ))}
         </SimpleGrid>
-      </ul>
-
-      <Button onClick={handleAddEventClick}>Add Event</Button>
-
-      <Modal isOpen={showAddEventModal} onClose={handleCloseModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add Event</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <AddEvent addEvent={addEvent} />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      </Box>
     </div>
   );
 };

@@ -6,11 +6,11 @@ export const Navigation = () => {
     <nav>
       <ul>
         <li>
-          <Link to="/">Events</Link>
+          <Link to="/">Home</Link>
         </li>
-        <li>
+        {/* <li>
           <Link to="/event/1">Event</Link>
-        </li>
+        </li> */}
       </ul>
     </nav>
   );
