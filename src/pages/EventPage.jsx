@@ -1,6 +1,21 @@
-import { useEffect, useState } from 'react';
-import { Heading, Button, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Input, Textarea, Stack, CheckboxGroup, Checkbox } from '@chakra-ui/react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import {
+  Heading,
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  Input,
+  Textarea,
+  Stack,
+  CheckboxGroup,
+  Checkbox,
+  Box,
+} from "@chakra-ui/react";
+import { useParams } from "react-router-dom";
 
 export const EventPage = () => {
   const { eventId } = useParams();
@@ -9,11 +24,11 @@ export const EventPage = () => {
   const [users, setUsers] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editedEvent, setEditedEvent] = useState({
-    title: '',
-    description: '',
-    image: '',
-    startTime: '',
-    endTime: '',
+    title: "",
+    description: "",
+    image: "",
+    startTime: "",
+    endTime: "",
     categoryIds: [],
     createdBy: null,
   });
@@ -22,11 +37,12 @@ export const EventPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [eventResponse, categoriesResponse, usersResponse] = await Promise.all([
-          fetch(`http://localhost:3000/events/${eventId}`),
-          fetch('http://localhost:3000/categories'),
-          fetch('http://localhost:3000/users'),
-        ]);
+        const [eventResponse, categoriesResponse, usersResponse] =
+          await Promise.all([
+            fetch(`http://localhost:3000/events/${eventId}`),
+            fetch("http://localhost:3000/categories"),
+            fetch("http://localhost:3000/users"),
+          ]);
 
         const [eventData, categoriesData, usersData] = await Promise.all([
           eventResponse.json(),
@@ -39,16 +55,16 @@ export const EventPage = () => {
         setUsers(usersData);
 
         setEditedEvent({
-          title: eventData.title || '',
-          description: eventData.description || '',
-          image: eventData.image || '',
-          startTime: eventData.startTime || '',
-          endTime: eventData.endTime || '',
+          title: eventData.title || "",
+          description: eventData.description || "",
+          image: eventData.image || "",
+          startTime: eventData.startTime || "",
+          endTime: eventData.endTime || "",
           categoryIds: eventData.categoryIds || [],
           createdBy: eventData.createdBy || null,
         });
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       }
     };
 
@@ -58,11 +74,13 @@ export const EventPage = () => {
   useEffect(() => {
     const fetchCategoryNames = async () => {
       try {
-        const categoriesResponse = await fetch('http://localhost:3000/categories');
+        const categoriesResponse = await fetch(
+          "http://localhost:3000/categories"
+        );
         const categoriesData = await categoriesResponse.json();
         setCategoryOptions(categoriesData);
       } catch (error) {
-        console.error('Error fetching category names:', error);
+        console.error("Error fetching category names:", error);
       }
     };
 
@@ -71,6 +89,27 @@ export const EventPage = () => {
 
   const handleEditClick = () => {
     setShowEditModal(true);
+  };
+
+  const handleDeleteClick = async () => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        const response = await fetch(
+          `http://localhost:3000/events/${eventId}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.ok) {
+          //
+        } else {
+          console.error("Failed to delete event");
+        }
+      } catch (error) {
+        console.error("Error deleting event:", error);
+      }
+    }
   };
 
   const handleCloseEditModal = () => {
@@ -90,9 +129,9 @@ export const EventPage = () => {
 
     try {
       const response = await fetch(`http://localhost:3000/events/${eventId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(editedEvent),
       });
@@ -101,93 +140,137 @@ export const EventPage = () => {
         setEvent(editedEvent);
         setShowEditModal(false);
       } else {
-        console.error('Failed to update event');
+        console.error("Failed to update event");
       }
     } catch (error) {
-      console.error('Error updating event:', error);
+      console.error("Error updating event:", error);
     }
   };
 
   return (
-    <div>
-      <Heading>{event ? event.title : 'Loading...'}</Heading>
-      <p>Description: {event ? event.description : 'Loading...'}</p>
-      <p>Image: {event ? <img src={event.image} alt={event.title} style={{ maxWidth: '300px' }} /> : 'Loading...'}</p>
-      <p>Start Time: {event ? event.startTime : 'Loading...'}</p>
-      <p>End Time: {event ? event.endTime : 'Loading...'}</p>
-      <p>Categories: {event ? event.categoryIds.map((categoryId) => categories.find((cat) => cat.id === categoryId)?.name || '').join(', ') : 'Loading...'}</p>
-      <p>Created By: {event ? users.find((user) => user.id === event.createdBy)?.name || 'Unknown' : 'Loading...'}</p>
+    <Box
+      p="4"
+      bg="green.500"
+      height="100vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <Box p="4" bg="white" borderRadius="lg" boxShadow="lg" width="400px">
+        <Heading mb="4">{event ? event.title : "Loading..."}</Heading>
+        <p>Description: {event ? event.description : "Loading..."}</p>
+        <p>
+          Image:{" "}
+          {event ? (
+            <img
+              src={event.image}
+              alt={event.title}
+              style={{ maxWidth: "300px" }}
+            />
+          ) : (
+            "Loading..."
+          )}
+        </p>
+        <p>Start Time: {event ? event.startTime : "Loading..."}</p>
+        <p>End Time: {event ? event.endTime : "Loading..."}</p>
+        <p>
+          Categories:{" "}
+          {event
+            ? event.categoryIds
+                .map(
+                  (categoryId) =>
+                    categories.find((cat) => cat.id === categoryId)?.name || ""
+                )
+                .join(", ")
+            : "Loading..."}
+        </p>
+        <p>
+          Created By:{" "}
+          {event
+            ? users.find((user) => user.id === event.createdBy)?.name ||
+              "Unknown"
+            : "Loading..."}
+        </p>
 
-      <Button onClick={handleEditClick}>Edit</Button>
+        <Button mr="2" onClick={handleEditClick} colorScheme="orange">
+          Edit
+        </Button>
+        <Button onClick={handleDeleteClick} colorScheme="red">
+          Delete
+        </Button>
 
-      <Modal isOpen={showEditModal} onClose={handleCloseEditModal}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Event</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <form onSubmit={handleFormSubmit}>
-              <Stack spacing={4}>
-                <Input
-                  type="text"
-                  name="title"
-                  value={editedEvent.title}
-                  onChange={handleInputChange}
-                  placeholder="Title"
-                />
-                <Textarea
-                  name="description"
-                  value={editedEvent.description}
-                  onChange={handleInputChange}
-                  placeholder="Description"
-                />
-                <Input
-                  type="text"
-                  name="image"
-                  value={editedEvent.image}
-                  onChange={handleInputChange}
-                  placeholder="Image URL"
-                />
-                <Input
-                  type="text"
-                  name="startTime"
-                  value={editedEvent.startTime}
-                  onChange={handleInputChange}
-                  placeholder="Start Time"
-                />
-                <Input
-                  type="text"
-                  name="endTime"
-                  value={editedEvent.endTime}
-                  onChange={handleInputChange}
-                  placeholder="End Time"
-                />
-                <CheckboxGroup
-                  name="categoryIds"
-                  value={editedEvent.categoryIds}
-                  onChange={(values) => setEditedEvent({ ...editedEvent, categoryIds: values })}
-                >
-                  {categoryOptions.map((category) => (
-                    <Checkbox key={category.id} value={category.id}>
-                      {category.name}
-                    </Checkbox>
-                  ))}
-                </CheckboxGroup>
+        <Modal isOpen={showEditModal} onClose={handleCloseEditModal}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Edit Event</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <form onSubmit={handleFormSubmit}>
+                <Stack spacing={4} mb="4">
+                  <Input
+                    type="text"
+                    name="title"
+                    value={editedEvent.title}
+                    onChange={handleInputChange}
+                    placeholder="Title"
+                  />
+                  <Textarea
+                    name="description"
+                    value={editedEvent.description}
+                    onChange={handleInputChange}
+                    placeholder="Description"
+                  />
+                  <Input
+                    type="text"
+                    name="image"
+                    value={editedEvent.image}
+                    onChange={handleInputChange}
+                    placeholder="Image URL"
+                  />
+                  <Input
+                    type="text"
+                    name="startTime"
+                    value={editedEvent.startTime}
+                    onChange={handleInputChange}
+                    placeholder="Start Time"
+                  />
+                  <Input
+                    type="text"
+                    name="endTime"
+                    value={editedEvent.endTime}
+                    onChange={handleInputChange}
+                    placeholder="End Time"
+                  />
+                  <CheckboxGroup
+                    name="categoryIds"
+                    value={editedEvent.categoryIds}
+                    onChange={(values) =>
+                      setEditedEvent({ ...editedEvent, categoryIds: values })
+                    }
+                  >
+                    {categoryOptions.map((category) => (
+                      <Checkbox key={category.id} value={category.id}>
+                        {category.name}
+                      </Checkbox>
+                    ))}
+                  </CheckboxGroup>
 
-                {/* Created By - You might want to use a dropdown to select a user */}
-                <Input
-                  type="text"
-                  name="createdBy"
-                  value={editedEvent.createdBy}
-                  onChange={handleInputChange}
-                  placeholder="Created By (user ID)"
-                />
-                <Button type="submit">Save Changes</Button>
-              </Stack>
-            </form>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </div>
+                  <Input
+                    type="text"
+                    name="createdBy"
+                    value={editedEvent.createdBy}
+                    onChange={handleInputChange}
+                    placeholder="Created By (user ID)"
+                  />
+                  <Button type="submit" colorScheme="orange">
+                    Save Changes
+                  </Button>
+                </Stack>
+              </form>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </Box>
+    </Box>
   );
 };
