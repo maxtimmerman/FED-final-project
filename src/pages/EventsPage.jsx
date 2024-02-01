@@ -46,14 +46,51 @@ export const EventsPage = () => {
   }, []);
 
   const addEvent = async (event) => {
-    const response = await fetch("http://localhost:3000/events", {
-      method: "POST",
-      body: JSON.stringify(event),
-    });
+    try {
+      let createdBy;
+      if (event.createdByName) {
+        const userResponse = await fetch("http://localhost:3000/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: event.createdByName,
+            image: event.createdByPhoto || "https://pngimg.com/uploads/simpsons/simpsons_PNG6.png",
+          }),
+        });
+  
+        if (!userResponse.ok) {
+          console.error("Failed to create user");
+          return;
+        }
+  
+        createdBy = (await userResponse.json()).id;
+      }
 
-    event.id = (await response.json()).id;
-    setEvents((prevEvents) => [...prevEvents, event]);
-    setShowAddEventModal(false);
+      const eventData = {
+        ...event,
+        createdBy,
+      };
+  
+      const response = await fetch("http://localhost:3000/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventData),
+      });
+  
+      if (response.ok) {
+        const newEvent = await response.json();
+        setEvents((prevEvents) => [...prevEvents, newEvent]);
+        setShowAddEventModal(false);
+      } else {
+        console.error("Failed to add event");
+      }
+    } catch (error) {
+      console.error("Error adding event:", error);
+    }
   };
 
   const handleAddEventClick = () => {
@@ -101,13 +138,28 @@ export const EventsPage = () => {
     return (titleMatches || descriptionMatches) && categoryMatches;
   });
 
+  const formatDateTime = (dateTimeString) => {
+    const options = {
+      hour: "numeric",
+      minute: "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+
+    const formattedDateTime = new Date(dateTimeString).toLocaleDateString(
+      "en-EN",
+      options
+    );
+    return formattedDateTime;
+  };
+
   return (
     <div className="App">
       <Box p="4" bg="green.500" textAlign="center">
         <Heading as="h1" mb="4" color="white" textAlign="center">
           List of events
         </Heading>
-
         <Input
           mb="4"
           bg="white"
@@ -122,7 +174,7 @@ export const EventsPage = () => {
         />
 
         <Box mb="4">
-          {categories.map((category) => (
+          {categories && categories.length > 0 && categories.map((category) => (
             <Checkbox
               color="white"
               size="lg"
@@ -150,7 +202,7 @@ export const EventsPage = () => {
         <Modal isOpen={showAddEventModal} onClose={handleCloseModal}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Add Event</ModalHeader>
+            <ModalHeader color="orange.700" bg="orange.100" borderTopRadius="lg">Add Event</ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <AddEvent addEvent={addEvent} />
@@ -196,9 +248,9 @@ export const EventsPage = () => {
                 <Text color="green.700" pb="4">
                   {event.description}
                 </Text>
-                <Text color="green.600">Start: {event.startTime}</Text>
+                <Text color="green.600"> Start: {event ? formatDateTime(event.startTime) : "Loading..."}</Text>
                 <Text color="green.600" pb="4">
-                  End: {event.endTime}
+                  End: {event ? formatDateTime(event.endTime) : "Loading..."}
                 </Text>
                 <Text color="green.500" pb="6">
                   Category:{" "}

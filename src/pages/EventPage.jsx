@@ -11,11 +11,13 @@ import {
   Input,
   Textarea,
   Stack,
-  CheckboxGroup,
   Checkbox,
   Box,
+  Image,
+  Text,
+  useToast,
 } from "@chakra-ui/react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export const EventPage = () => {
   const { eventId } = useParams();
@@ -33,6 +35,7 @@ export const EventPage = () => {
     createdBy: null,
   });
   const [categoryOptions, setCategoryOptions] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +90,11 @@ export const EventPage = () => {
     fetchCategoryNames();
   }, []);
 
+  const getUserPhoto = (userId) => {
+    const user = users.find((user) => user.id === userId);
+    return user ? user.image : "";
+  };
+
   const handleEditClick = () => {
     setShowEditModal(true);
   };
@@ -102,7 +110,7 @@ export const EventPage = () => {
         );
 
         if (response.ok) {
-          //
+          navigate("/");
         } else {
           console.error("Failed to delete event");
         }
@@ -124,8 +132,12 @@ export const EventPage = () => {
     }));
   };
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+
+    const categoryIdsAsNumbers = editedEvent.categoryIds.map((categoryId) =>
+      parseInt(categoryId, 10)
+    );
 
     try {
       const response = await fetch(`http://localhost:3000/events/${eventId}`, {
@@ -133,49 +145,102 @@ export const EventPage = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editedEvent),
+        body: JSON.stringify({
+          ...editedEvent,
+          categoryIds: categoryIdsAsNumbers,
+        }),
       });
 
       if (response.ok) {
         setEvent(editedEvent);
         setShowEditModal(false);
+        toast({
+          title: "Event Edited",
+          description: "The event was successfully edited.",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
       } else {
-        console.error("Failed to update event");
+        console.error("Failed to edit event");
+        toast({
+          title: "Error",
+          description: "Failed to edit event. Please try again.",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
       }
     } catch (error) {
-      console.error("Error updating event:", error);
+      console.error("Error editing event:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again later.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
+
+  const formatDateTime = (dateTimeString) => {
+    const options = {
+      hour: "numeric",
+      minute: "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    };
+
+    const formattedDateTime = new Date(dateTimeString).toLocaleDateString(
+      "en-EN",
+      options
+    );
+    return formattedDateTime;
+  };
+
+  const handleCategoryCheckboxChange = (categoryId, isChecked) => {
+    setEditedEvent((prev) => {
+      if (isChecked) {
+        // If the checkbox is checked, add the category ID to the array
+        return { ...prev, categoryIds: [...prev.categoryIds, categoryId] };
+      } else {
+        // If the checkbox is unchecked, remove the category ID from the array
+        return {
+          ...prev,
+          categoryIds: prev.categoryIds.filter((id) => id !== categoryId),
+        };
+      }
+    });
+  };
+
+  const toast = useToast();
 
   return (
     <Box
       p="4"
-      bg="green.500"
+      bg={event ? `url(${event.image})` : "green.500"}
       height="100vh"
       display="flex"
       alignItems="center"
       justifyContent="center"
     >
       <Box p="4" bg="white" borderRadius="lg" boxShadow="lg" width="400px">
-        <Heading mb="4">{event ? event.title : "Loading..."}</Heading>
-        <p>Description: {event ? event.description : "Loading..."}</p>
-        <p>
-          Image:{" "}
-          {event ? (
-            <img
-              src={event.image}
-              alt={event.title}
-              style={{ maxWidth: "300px" }}
-            />
-          ) : (
-            "Loading..."
-          )}
-        </p>
-        <p>Start Time: {event ? event.startTime : "Loading..."}</p>
-        <p>End Time: {event ? event.endTime : "Loading..."}</p>
-        <p>
+        <Heading mb="4" color="green.800" align="center">
+          {event ? event.title : "Loading..."}
+        </Heading>
+        <Text fontSize="x-large" color="green.700" align="center" mb="8">
+          {event ? event.description : "Loading..."}
+        </Text>
+        <Text color="green.600" align="center">
+          Start Time: {event ? formatDateTime(event.startTime) : "Loading..."}
+        </Text>
+        <Text color="green.600" align="center" mb="8">
+          End Time: {event ? formatDateTime(event.endTime) : "Loading..."}
+        </Text>
+        <Text color="green.700" align="center" mb="8">
           Categories:{" "}
-          {event
+          {event && event.categoryIds
             ? event.categoryIds
                 .map(
                   (categoryId) =>
@@ -183,26 +248,47 @@ export const EventPage = () => {
                 )
                 .join(", ")
             : "Loading..."}
-        </p>
-        <p>
-          Created By:{" "}
-          {event
-            ? users.find((user) => user.id === event.createdBy)?.name ||
-              "Unknown"
-            : "Loading..."}
-        </p>
+        </Text>
+        <Text color="green.800" mb="8">
+          <span style={{ display: "flex", alignItems: "center" }}>
+            Created By:{" "}
+            {event ? (
+              <>
+                {users.find((user) => user.id === event.createdBy)?.name ||
+                  "Unknown"}
+                <Image
+                  src={getUserPhoto(event.createdBy)}
+                  boxSize="100px"
+                  borderRadius="full"
+                  ml="9"
+                />
+              </>
+            ) : (
+              "Loading..."
+            )}
+          </span>
+        </Text>
 
-        <Button mr="2" onClick={handleEditClick} colorScheme="orange">
-          Edit
-        </Button>
-        <Button onClick={handleDeleteClick} colorScheme="red">
-          Delete
-        </Button>
+        <Box align="center">
+          <Button mr="2" onClick={handleEditClick} colorScheme="orange">
+            Edit
+          </Button>
+          <Button onClick={handleDeleteClick} colorScheme="red">
+            Delete
+          </Button>
+        </Box>
 
         <Modal isOpen={showEditModal} onClose={handleCloseEditModal}>
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Edit Event</ModalHeader>
+            <ModalHeader
+              color="orange.700"
+              bg="orange.100"
+              borderTopRadius="lg"
+              mb="4"
+            >
+              Edit Event
+            </ModalHeader>
             <ModalCloseButton />
             <ModalBody>
               <form onSubmit={handleFormSubmit}>
@@ -241,24 +327,27 @@ export const EventPage = () => {
                     onChange={handleInputChange}
                     placeholder="End Time"
                   />
-                  <CheckboxGroup
-                    name="categoryIds"
-                    value={editedEvent.categoryIds}
-                    onChange={(values) =>
-                      setEditedEvent({ ...editedEvent, categoryIds: values })
-                    }
-                  >
-                    {categoryOptions.map((category) => (
-                      <Checkbox key={category.id} value={category.id}>
-                        {category.name}
-                      </Checkbox>
-                    ))}
-                  </CheckboxGroup>
-
+                  {categoryOptions.map((category) => (
+                    <Checkbox
+                      key={category.id}
+                      isChecked={editedEvent.categoryIds.includes(category.id)}
+                      onChange={(e) =>
+                        handleCategoryCheckboxChange(
+                          category.id,
+                          e.target.checked
+                        )
+                      }
+                    >
+                      {category.name}
+                    </Checkbox>
+                  ))}
                   <Input
                     type="text"
                     name="createdBy"
-                    value={editedEvent.createdBy}
+                    value={
+                      users.find((user) => user.id === editedEvent.createdBy)
+                        ?.name || ""
+                    }
                     onChange={handleInputChange}
                     placeholder="Created By (user ID)"
                   />

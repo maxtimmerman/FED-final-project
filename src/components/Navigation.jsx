@@ -1,17 +1,13 @@
+import { Box, Flex } from '@chakra-ui/react';
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 export const Navigation = () => {
   return (
-    <nav>
-      <ul>
-        <li>
-          <Link to="/">Home</Link>
-        </li>
-        {/* <li>
-          <Link to="/event/1">Event</Link>
-        </li> */}
-      </ul>
-    </nav>
+    <Flex as="nav" p="6" color="green.900" fontSize="2xl">
+      <Box >
+        <Link to="/" style={{ marginRight: '18px' }}>Home</Link>
+      </Box>
+    </Flex>
   );
 };
